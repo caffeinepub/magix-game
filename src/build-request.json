@@ -1,0 +1,86 @@
+{
+  "kind": "build_request",
+  "title": "Make deployment failure retry work reliably when the user says “try again”",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-36",
+      "text": "Ensure the app provides a clear, user-invokable way to retry the most recent build + network deployment after a deployment failure, so a user can effectively “try again” without reloading the app.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "try again"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After a deployment failure, the UI shows a visible retry control that the user can click to start a new deployment attempt.",
+        "Clicking the retry control re-runs the same deployment attempt (using the most recently saved attempt parameters/state) rather than doing nothing.",
+        "While a retry is in progress, the retry control is disabled and the UI indicates that a retry is running (in English)."
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Fix the deployment retry UI state so attempt counters and status text are accurate and consistent across the initial run and subsequent manual retries.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2",
+          "msg-3"
+        ],
+        "quotes": [
+          "🙏 Deployment didn't complete",
+          "try again"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the deployment system is retrying internally, the UI shows an accurate attempt counter (e.g., attempt X/Y) that matches the underlying retry logic.",
+        "Starting a manual retry resets attempt counters/state appropriately for the new run (no stale attempt number from the previous run).",
+        "The banner can be dismissed, and dismissing clears the failed state so it does not reappear unless there is a new failure."
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "When the user triggers a manual retry but there is no saved previous deployment attempt available, show a clear English message explaining that there is nothing to retry and how to proceed.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "try again"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the user initiates retry without a saved deployment attempt, the app displays a clear English error message (not a silent no-op).",
+        "The message does not expose raw stack traces by default; raw details remain available only via the existing diagnostics/details UI when applicable."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend: do not modify any files under frontend/src/components/ui or other paths listed in frontend.immutablePaths; compose read-only UI components instead.",
+    "Backend: keep single-actor architecture; do not introduce additional canisters or external services."
+  ],
+  "nonGoals": [
+    "Implementing a real production deployment pipeline or integrating with external CI/CD services.",
+    "Changing community/game/profile features unrelated to deployment retry/diagnostics."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Use English for all user-facing text."
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

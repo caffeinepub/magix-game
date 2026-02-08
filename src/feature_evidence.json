@@ -1,0 +1,67 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-ensure-the-app-provides-a-clear-user-invokable-way-to-retry-the-most-recent-build-network-deployment-after-a-deployment-failure-so-a-user-can-effectively-try-again-without-reloading-the-app",
+      "featureTitle": "Ensure the app provides a clear, user-invokable way to retry the most recent build + network deployment after a deployment failure, so a user can effectively “try again” without reloading the app.",
+      "files": [
+        "frontend/src/components/AppLayout.tsx",
+        "frontend/src/components/DeploymentRetryBanner.tsx",
+        "frontend/src/hooks/useRetryableDeployment.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-36"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-deployment-retry-ui-state-so-attempt-counters-and-status-text-are-accurate-and-consistent-across-the-initial-run-and-subsequent-manual-retries",
+      "featureTitle": "Fix the deployment retry UI state so attempt counters and status text are accurate and consistent across the initial run and subsequent manual retries.",
+      "files": [
+        "frontend/src/components/AppLayout.tsx",
+        "frontend/src/components/DeploymentRetryBanner.tsx",
+        "frontend/src/hooks/useRetryableDeployment.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-37"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-the-user-triggers-a-manual-retry-but-there-is-no-saved-previous-deployment-attempt-available-show-a-clear-english-message-explaining-that-there-is-nothing-to-retry-and-how-to-proceed",
+      "featureTitle": "When the user triggers a manual retry but there is no saved previous deployment attempt available, show a clear English message explaining that there is nothing to retry and how to proceed.",
+      "files": [
+        "frontend/src/components/DeploymentRetryBanner.tsx",
+        "frontend/src/hooks/useRetryableDeployment.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-38"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

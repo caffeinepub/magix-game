@@ -1,0 +1,398 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 19,
+  "summary": "Magix Game: a beginner-friendly Web3 community game where users join communities, appear as avatars on a shared real-time visual map, and cooperatively construct buildings via one-per-user actions secured by simplified blockchain logic, with admin-only permissions for creating communities, events, and starting constructions.",
+  "architectural_notes": [
+    "Real-time synchronization required for community map/avatars and game progress.",
+    "Blockchain layer is limited to anti-cheat (1 action per user) and secure/persistent game state; UX should abstract blockchain complexity.",
+    "Game progression is community-member-count driven; completed constructions remain visible in the shared world.",
+    "Introduce an admin role (by Principal allowlist) and enforce server-side authorization so only admin can create communities, create events, and start constructions.",
+    "Add community-scoped profile data model (per (communityId, principal)) with fields: name, services, activities, social links; enforce server-side authorization so only the owning principal can update their profile.",
+    "Map/Game activity is event-gated: the community map is considered active only during an admin-created event.",
+    "Per event, when an event starts, exactly one building site is shown on the map for that community.",
+    "On event start (or first entry during active event), each user must choose “Do you want to build? Yes / No”. If No, the user remains visible on the map but is not allowed to contribute/build for that event.",
+    "Contribution rule is per-event: if the user chose Yes, they may click once to add exactly one building piece; each user can build at most once per event (server-enforced).",
+    "Community member list visibility is gated by authentication: only logged-in users can view it; logged-out visitors see a login-required message."
+  ],
+  "known_issues": [
+    "Deployment/build retry needed: encountered a deployment error during build and network deployment."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-sign-in-and-session-aware-app-navigation-so-a-user-can-easily-sign-in-out-and-the-app-can-identify-the-current-user-principal-for-all-profile-community-game-actions",
+      "title": "Implement Internet Identity sign-in and session-aware app navigation so a user can easily sign in/out and the app can identify the current user principal for all profile/community/game actions.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-frontend-profile-ui-a-profile-page-to-view-and-edit-the-signed-in-user-s-profile-name-bio-links-list-and-a-public-profile-view-to-display-other-users-profiles",
+      "title": "Build frontend Profile UI: a profile page to view and edit the signed-in user’s profile (name, bio, links list) and a public profile view to display other users’ profiles.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-frontend-communities-ui-a-community-page-with-1-list-of-communities-2-create-community-form-3-community-detail-view-showing-member-list-and-navigation-into-that-community-s-map-game-page",
+      "title": "Build frontend Communities UI: a community page with (1) list of communities, (2) create community form, (3) community detail view showing member list and navigation into that community’s map/game page.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-frontend-community-map-game-page-that-renders-a-shared-visual-map-background-and-overlays-simple-avatars-for-all-community-members-using-the-backend-map-data",
+      "title": "Build frontend community Map/Game page that renders a shared visual map background and overlays simple avatars for all community members using the backend map data.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-near-real-time-map-updates-for-all-clients-by-periodically-refreshing-community-map-game-state-from-the-backend-polling-so-avatars-and-construction-progress-update-automatically-without-manual-refresh",
+      "title": "Provide near-real-time map updates for all clients by periodically refreshing community map/game state from the backend (polling), so avatars and construction progress update automatically without manual refresh.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-render-construction-progress-visually-on-the-map-show-an-in-progress-building-that-gains-visible-parts-as-contributions-happen-and-show-completed-buildings-remaining-on-the-map-for-the-community",
+      "title": "Render construction progress visually on the map: show an in-progress building that gains visible parts as contributions happen, and show completed buildings remaining on the map for the community.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-action-button-labeled-exactly-add-my-part-on-the-community-map-game-page-that-triggers-the-one-time-contribution-for-the-signed-in-user-and-clearly-handles-success-already-contributed-and-not-a-member-states",
+      "title": "Add an action button labeled exactly \"Add my part\" on the community Map/Game page that triggers the one-time contribution for the signed-in user and clearly handles success, already-contributed, and not-a-member states.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-coherent-beginner-friendly-visual-theme-across-the-app-colors-typography-layout-suitable-for-a-community-building-game-avoiding-a-blue-purple-dominant-palette-keep-navigation-simple-between-profile-communities-and-map-game-pages",
+      "title": "Apply a coherent, beginner-friendly visual theme across the app (colors, typography, layout) suitable for a community-building game, avoiding a blue/purple-dominant palette. Keep navigation simple between Profile, Communities, and Map/Game pages.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-communities-page-ui-to-reflect-admin-only-community-creation-regular-users-must-not-be-able-to-open-see-use-the-create-community-flow-and-the-ui-must-provide-a-clear-english-explanation-that-only-the-admin-can-create-communities-without-changing-any-other-community-browsing-joining-behavior",
+      "title": "Update the Communities page UI to reflect admin-only community creation: regular users must not be able to open/see/use the \"Create Community\" flow, and the UI must provide a clear English explanation that only the admin can create communities (without changing any other community browsing/joining behavior).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-frontend-gracefully-handles-admin-only-backend-rejections-for-community-creation-by-showing-the-backend-provided-error-or-a-clear-english-admin-only-message-instead-of-a-generic-failure-toast",
+      "title": "Ensure the frontend gracefully handles admin-only backend rejections for community creation by showing the backend-provided error (or a clear English admin-only message) instead of a generic failure toast.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-community-detail-page-to-include-an-in-community-profile-view-for-each-community-member-showing-name-services-activities-and-social-network-links-read-only-when-viewing-other-members",
+      "title": "Update the Community Detail page to include an in-community profile view for each community member showing: name, services, activities, and social network links (read-only when viewing other members).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-edit-ui-inside-the-community-context-that-allows-a-signed-in-user-to-create-update-only-their-own-community-scoped-profile-name-services-activities-social-network-links-for-that-community-and-prevents-editing-anyone-else-s-profile-in-the-ui",
+      "title": "Add an edit UI inside the community context that allows a signed-in user to create/update only their own community-scoped profile (name, services, activities, social network links) for that community, and prevents editing anyone else’s profile in the UI.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-frontend-react-query-data-layer-to-fetch-community-scoped-member-profiles-and-keep-the-community-ui-updated-after-saving",
+      "title": "Extend the frontend React Query data layer to fetch community-scoped member profiles and keep the community UI updated after saving.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-map-game-page-ui-to-reflect-event-gated-map-behavior-if-there-is-no-active-admin-event-show-a-clear-english-message-that-the-map-is-inactive-and-disable-all-building-interactions-while-still-rendering-the-map-background-and-avatars",
+      "title": "Update the Map/Game page UI to reflect event-gated map behavior: if there is no active admin event, show a clear English message that the map is inactive and disable all building interactions while still rendering the map background and avatars.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-an-event-is-active-display-exactly-one-building-site-on-the-map-and-prompt-each-signed-in-community-member-once-with-do-you-want-to-build-yes-no",
+      "title": "When an event is active, display exactly one building site on the map and prompt each signed-in community member once with: “Do you want to build? Yes / No”.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-if-the-user-chose-yes-allow-exactly-one-click-to-add-one-building-piece-during-the-active-event-if-the-user-chose-no-keep-the-user-visible-on-the-map-but-prevent-building",
+      "title": "If the user chose Yes, allow exactly one click to add one building piece during the active event; if the user chose No, keep the user visible on the map but prevent building.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-global-app-footer-in-frontend-src-components-applayout-tsx-to-include-an-acknowledgment-line-stating-this-app-is-supported-by-dmc-technologies-https-www-dmc-technologies-fr-and-by-nouvelle-gestion-environnement-a-french-ngo-https-www-ngenvironnement-org-the-two-organization-names-must-be-clickable-links-to-their-respective-websites",
+      "title": "Update the global app footer (in frontend/src/components/AppLayout.tsx) to include an acknowledgment line stating: “This app is supported by DMC Technologies (https://www.dmc-technologies.fr) and by Nouvelle Gestion Environnement, a French NGO (https://www.ngenvironnement.org).” The two organization names must be clickable links to their respective websites.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-community-detail-page-so-that-community-member-information-is-visible-only-to-logged-in-users-when-the-visitor-is-not-authenticated-do-not-fetch-or-render-the-community-members-list-including-member-count-display-derived-from-the-members-list-and-instead-show-the-exact-message-please-log-in-to-view-community-members",
+      "title": "Update the Community Detail page so that community member information is visible only to logged-in users: when the visitor is not authenticated, do not fetch or render the community members list (including member count display derived from the members list) and instead show the exact message “Please log in to view community members.”",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-explicit-user-invokable-retry-mechanism-for-the-build-network-deployment-process-that-is-triggered-when-a-deployment-error-occurs-so-that-the-user-can-click-execute-a-single-action-to-re-run-the-same-build-and-deployment-attempt",
+      "title": "Add an explicit, user-invokable retry mechanism for the build + network deployment process that is triggered when a deployment error occurs, so that the user can click/execute a single action to re-run the same build and deployment attempt.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-deployment-failure-diagnostics-shown-to-the-user-by-surfacing-the-underlying-error-output-or-a-clear-english-summary-plus-expandable-raw-logs-for-build-and-network-deployment-failures-instead-of-only-a-generic-failure-message",
+      "title": "Improve deployment failure diagnostics shown to the user by surfacing the underlying error output (or a clear English summary plus expandable raw logs) for build and network deployment failures, instead of only a generic failure message.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-retry-flow-is-resilient-to-transient-network-issues-by-automatically-performing-at-least-one-internal-retry-with-a-short-backoff-during-deployment-while-still-allowing-the-user-to-manually-retry-if-it-ultimately-fails",
+      "title": "Ensure the retry flow is resilient to transient network issues by automatically performing at least one internal retry (with a short backoff) during deployment, while still allowing the user to manually retry if it ultimately fails.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-only-ui-space-to-create-an-event-for-a-specific-community-with-inputs-for-name-number-of-participants-piece-and-kind-farm-party-gift-building",
+      "title": "Add an admin-only UI space to create an event for a specific community with inputs for: Name, Number of participants, Piece, and Kind (Farm, Party, Gift, Building).",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-new-event-creation-ui-to-the-backend-using-react-query-mutations-and-ensure-relevant-cached-queries-are-refreshed-so-the-map-game-page-reflects-the-newly-created-active-event-state-after-navigation-polling",
+      "title": "Wire the new event creation UI to the backend using React Query mutations and ensure relevant cached queries are refreshed so the Map/Game page reflects the newly created active event state after navigation/polling.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-app-provides-a-clear-user-invokable-way-to-retry-the-most-recent-build-network-deployment-after-a-deployment-failure-so-a-user-can-effectively-try-again-without-reloading-the-app",
+      "title": "Ensure the app provides a clear, user-invokable way to retry the most recent build + network deployment after a deployment failure, so a user can effectively “try again” without reloading the app.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-deployment-retry-ui-state-so-attempt-counters-and-status-text-are-accurate-and-consistent-across-the-initial-run-and-subsequent-manual-retries",
+      "title": "Fix the deployment retry UI state so attempt counters and status text are accurate and consistent across the initial run and subsequent manual retries.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-the-user-triggers-a-manual-retry-but-there-is-no-saved-previous-deployment-attempt-available-show-a-clear-english-message-explaining-that-there-is-nothing-to-retry-and-how-to-proceed",
+      "title": "When the user triggers a manual retry but there is no saved previous deployment attempt available, show a clear English message explaining that there is nothing to retry and how to proceed.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "User accounts + public profile (easy signup, name/bio, social/business links)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Communities: create/join communities and view member lists; each community has a shared game space",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Shared real-time visual map per community showing world/village and member avatars; avatars appear on join and sync live",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Co-op construction game: member-count-based missions; each user can click once to add one part; show progress visually; persist completed buildings",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Simplified blockchain integration to enforce 1 action per user, secure/persist game state, and prevent cheating (no blockchain knowledge required)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Simple UI/pages: profile, community, map/game, and action button (“add my part”)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Create a backend user profile system keyed by Principal with public fields: display name, bio, and a list of external links (e.g., social networks/business). Support create/update of the current user’s profile and read-only viewing of any user’s public profile.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Implement backend community system: allow authenticated users to create a community, list all communities, join a community, and list community members. Store community metadata (at minimum: name, optional description) and membership lists.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Implement backend shared map state per community that tracks each member’s avatar presence on the map (at minimum: member principal and a deterministic or stored 2D position). Ensure that when a user joins a community, they appear in that community’s map state.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Implement backend cooperative construction game per community: maintain a current construction with a target number of parts based on the number of community members (e.g., 33 members => 33 parts). Allow each community member to perform exactly one contribution action per construction to add exactly one part. Persist completed constructions and keep them visible as finished buildings.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Admin-only controls: only the admin can create communities, create events, and start a building/construction; regular users cannot create communities or events.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Enforce admin-only authorization on the backend so that only the admin can create a community. If the project has (now or later) any backend methods for creating events or starting a building/construction, those methods must also be admin-only.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Community-scoped user profiles: within each community, each member has a profile (name, services, activities, social network links). Users can edit only their own community profile; others are read-only.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add a new community-scoped user profile model on the backend that is stored per (communityName, userPrincipal) and includes exactly these fields: name, services, activities, social network links.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Implement backend APIs to read and write community-scoped user profiles with authorization: (1) only the signed-in user can create/update their own community profile for a given community, and (2) community-scoped profiles can be read for any member within that same community.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Update the backend canister upgrade path (migration) to preserve existing state and initialize the new community-scoped profile storage without data loss.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add backend support for an admin-controlled \"active event\" per community that gates whether the map building phase is active.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Store and enforce per-event, per-user build eligibility on the backend using the user’s response to “Do you want to build? Yes / No”, and ensure each user can build at most once per event.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Update backend construction logic so it is event-scoped and does not automatically start a new construction when the current one completes; building availability must be determined only by whether an admin event is active.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add an in-app acknowledgment/support message (e.g., in footer or About page) stating the app is supported by DMC Technologies and Nouvelle Gestion Environnement, including their website links.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Make the community member list private: show member list only to logged-in users; if not logged in, hide the list and display “Please log in to view community members.”",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add an admin-only UI space/page to create a community event with fields: event name, number of participants, and a 'piece' value; include an event kind selector with options: farm, party, gift, building.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Extend the backend event model and creation API so an admin can create a community event with the following fields: event name, number of participants, piece, and event kind (farm | party | gift | building), while keeping existing event gating behavior (Map/Game uses the active event).",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Magix Game",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

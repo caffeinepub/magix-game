@@ -1,0 +1,89 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Reliable manual deployment retry with consistent UI state",
+  "requirements": [
+    {
+      "id": "REQ-36",
+      "summary": "Make the “Retry Deployment” control reliably re-run the most recent saved deployment attempt without requiring an app reload.",
+      "acceptanceCriteria": [
+        "After a deployment failure, the UI shows a visible retry control that the user can click to start a new deployment attempt.",
+        "Clicking the retry control re-runs the same deployment attempt (using the most recently saved attempt parameters/state) rather than doing nothing.",
+        "While a retry is in progress, the retry control is disabled and the UI indicates that a retry is running (in English)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useRetryableDeployment.ts",
+          "operation": "modify",
+          "description": "Refactor manual retry to re-run using the persisted latest attempt data from sessionStorage (via deploymentAttempt helpers) instead of simply calling deploy() blindly; ensure retry transitions state immediately (running/retrying) so the UI can disable controls and show progress."
+        },
+        {
+          "path": "frontend/src/lib/deploymentAttempt.ts",
+          "operation": "modify",
+          "description": "Extend the persisted attempt payload (as needed) to capture the minimal parameters/state required to re-run the same deployment attempt; keep storage safe for sessionStorage and backwards compatible with existing stored values."
+        },
+        {
+          "path": "frontend/src/components/DeploymentRetryBanner.tsx",
+          "operation": "modify",
+          "description": "Use existing shadcn-ui Button/Alert components to present a clear retry control that becomes disabled during an in-progress retry and displays an English in-progress label. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Wire the retry action from the banner to the updated hook manual-retry function and pass the correct in-progress state so the banner reliably disables retry while a new attempt is running."
+        }
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "summary": "Ensure attempt counters and failure/retry banner state are accurate across automatic retries and manual retries, and allow dismissing the banner without it reappearing until a new failure occurs.",
+      "acceptanceCriteria": [
+        "When the deployment system is retrying internally, the UI shows an accurate attempt counter (e.g., attempt X/Y) that matches the underlying retry logic.",
+        "Starting a manual retry resets attempt counters/state appropriately for the new run (no stale attempt number from the previous run).",
+        "The banner can be dismissed, and dismissing clears the failed state so it does not reappear unless there is a new failure."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useRetryableDeployment.ts",
+          "operation": "modify",
+          "description": "Align attempt counter state with retryWithBackoff semantics (attempts are 1..maxAttempts): set currentAttempt=1 at the start of each run, update currentAttempt to the next attempt number during internal retries, and reset counters cleanly when a manual retry starts."
+        },
+        {
+          "path": "frontend/src/components/DeploymentRetryBanner.tsx",
+          "operation": "modify",
+          "description": "Adjust displayed attempt/status text so it consistently reflects the hook’s attempt counter for internal retrying (attempt X/Y) and does not show stale values after a manual retry. Use existing shadcn-ui components only; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Update dismiss handling so it clears the failure state in the hook and also clears any persisted 'last failed attempt' marker as appropriate, preventing the banner from reappearing until a new deployment failure occurs."
+        },
+        {
+          "path": "frontend/src/lib/deploymentAttempt.ts",
+          "operation": "modify",
+          "description": "Ensure there is a clear helper call path to remove/reset the persisted last-attempt data when the user dismisses the failure banner, to avoid stale reappearance behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Show a clear English message when the user clicks retry but there is no saved prior deployment attempt to retry.",
+      "acceptanceCriteria": [
+        "If the user initiates retry without a saved deployment attempt, the app displays a clear English error message (not a silent no-op).",
+        "The message does not expose raw stack traces by default; raw details remain available only via the existing diagnostics/details UI when applicable."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useRetryableDeployment.ts",
+          "operation": "modify",
+          "description": "When manual retry is invoked and getDeploymentAttempt() returns null, surface a clear English error to the user (e.g., via the existing global toast system) and do not start a deployment run; avoid including stack traces in the default message."
+        },
+        {
+          "path": "frontend/src/components/DeploymentRetryBanner.tsx",
+          "operation": "modify",
+          "description": "Ensure the retry button remains user-invokable (when not in progress) and that failures to start a retry (no saved attempt) still produce a visible English message via existing app messaging patterns. Use existing shadcn-ui components only; verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}
